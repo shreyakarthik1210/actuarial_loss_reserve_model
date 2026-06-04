@@ -2,28 +2,27 @@ import pandas as pd
 import numpy as np
 from src.data.triangle_builder import loss_triangle_builder
 
+def cal_development_factors (triangle: pd.DataFrame) -> np.ndarray:
+    cols = list(triangle.columns)
+    factors = []
+
+    for i in range (len(cols) - 1):
+        cur = cols[i]
+        next = cols[i + 1]
+
+        valid = triangle[[cur, next]].dropna()
+
+        if valid.empty:
+            raise ValueError (
+                f"Development factor cannot be calculated for column '{cur}' as it contains only NaN values."
+            )
+
+        factor = valid[next].sum() / valid[cur].sum()
+        factors.append(factor)
+
+    return np.array(factors)
+
 def chain_ladder(t: pd.DataFrame) -> pd.DataFrame:
-
-    def cal_development_factors (triangle: pd.DataFrame) -> np.ndarray:
-        cols = list(triangle.columns)
-        factors = []
-
-        for i in range (len(cols) - 1):
-            cur = cols[i]
-            next = cols[i + 1]
-
-            valid = triangle[[cur, next]].dropna()
-
-            if valid.empty:
-                raise ValueError (
-                    f"Development factor cannot be calculated for column '{cur}' as it contains only NaN values."
-                )
-
-            factor = valid[next].sum() / valid[cur].sum()
-            factors.append(factor)
-
-        return np.array(factors)
-
     def cal_cdfs (factors: np.ndarray) -> np.ndarray:
         cdfs = list()
         for i in range (len(factors)):
