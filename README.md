@@ -10,10 +10,11 @@ This project estimates insurance loss reserves using actuarial reserving methods
 - Calculate age-to-age development factors
 - Estimate projected ultimate losses by accident year
 - Display total reserve estimates in a Streamlit dashboard
+- Monte Carlo simulation for reserve uncertainty
+
 
 ## Planned Features
 
-- Monte Carlo simulation for reserve uncertainty
 - PostgreSQL storage for claims and model runs
 - Backtesting against mature accident years
 - LSTM/BiLSTM benchmark inspired by actuarial deep learning research

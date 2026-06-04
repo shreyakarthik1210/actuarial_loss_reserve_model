@@ -4,6 +4,7 @@ from scipy.stats import lognorm
 
 from src.models.chain_ladder import cal_development_factors
 
+
 def cal_indv_development_factors (triangle: pd.DataFrame) -> np.ndarray:
     dev_periods = list(triangle.columns)
     individual_factors = dict()
@@ -18,7 +19,9 @@ def cal_indv_development_factors (triangle: pd.DataFrame) -> np.ndarray:
 
     return individual_factors
 
-
+"""
+This function estimates the volatility of development factors based on the loss triangle data.
+"""
 def estimate_volatility (triangle: pd.DataFrame, default_sigma: float = 0.5) -> pd.DataFrame:
     development_factors = cal_development_factors(triangle)
     individual_factors = cal_indv_development_factors(triangle)
@@ -34,13 +37,13 @@ def estimate_volatility (triangle: pd.DataFrame, default_sigma: float = 0.5) -> 
 
         chain_ladder_factor = development_factors[i]
         if len(factors) > 1:
-            log_factors = np.log(factors)
-            sigma = np.std(log_factors, ddof=1)
+            log_factors = np.log(factors) - np.log(chain_ladder_factor)  # Calculate log deviations from the chain ladder factor
+            sigma = np.std(log_factors, ddof=1) # Use sample standard deviation (ddof=1) for an unbiased estimate
 
             if (np.isnan(sigma) or sigma <= 0):
                 sigma = default_sigma
         else:
-            sigma = default_sigma
+            sigma = default_sigma   # Default sigma = 0.5 when there is insufficient data to estimate volatility
 
         volatility.append(
             {
@@ -52,18 +55,27 @@ def estimate_volatility (triangle: pd.DataFrame, default_sigma: float = 0.5) -> 
         )
     return pd.DataFrame(volatility)
 
+"""
+This function simulates future development factors based on the estimated volatility.
+"""
 def simulate_factors (vol_df: pd.DataFrame, state: np.random.Generator) -> np.ndarray:
     simulated_factors = list()
     for _, row in vol_df.iterrows():
         mean_factor = row['chain_ladder_factor']
         sigma = row['lognormal_sigma']
         
-        mu = np.log(mean_factor) - 0.5 * sigma**2
-        simulated_factor = lognorm(s=sigma, scale=np.exp(mu)).rvs(random_state=state)
+        mu = np.log(mean_factor) - 0.5 * sigma**2  # Adjust mean for lognormal distribution
+        # Simulate a development factor from the lognormal distribution
+        simulated_factor = lognorm(s=sigma, scale=np.exp(mu)).rvs(random_state=state) 
         simulated_factors.append(simulated_factor)
 
     return np.array(simulated_factors)
 
+"""
+This function implements a Monte Carlo simulation for loss reserve estimation. 
+It estimates the volatility of development factors, simulates future development factors using a 
+lognormal distribution, and projects ultimate losses and reserves for each simulation run. 
+"""
 def monte_carlo_simulation (triangle: pd.DataFrame, num_simulations: int = 10_000, 
                             random_seed: int = 42) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     state = np.random.default_rng(random_seed)
