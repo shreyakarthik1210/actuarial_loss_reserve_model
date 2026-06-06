@@ -36,7 +36,7 @@ def cal_development_factors (triangle: pd.DataFrame) -> np.ndarray:
 Implements the Chain-Ladder method for loss reserve estimation. 
 This is a deterministic method that calculates development factors and applies them to the loss triangle to project future losses.
 """
-def chain_ladder(t: pd.DataFrame) -> pd.DataFrame:
+def chain_ladder(df: pd.DataFrame) -> pd.DataFrame:
 
     """
     This function calculates the cumulative development factors (CDFs) to ultimate loss for each development period.
@@ -52,7 +52,6 @@ def chain_ladder(t: pd.DataFrame) -> pd.DataFrame:
 
         return np.array(cdfs)
 
-    df = loss_triangle_builder(t) # Convert raw claims data to loss triangle format
     development_periods = list(df.columns)
     development_factors = cal_development_factors(df)
     cdfs = cal_cdfs(development_factors)

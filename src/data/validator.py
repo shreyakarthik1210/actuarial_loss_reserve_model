@@ -1,7 +1,7 @@
-"""
 import pandas as pd
-
+"""
 Validates the claims data before processing. Checks for required columns, null values, negative paid losses, and duplicates.
+"""
 def validate_claims_data(df: pd.DataFrame) -> list[str]:
     errors = []
 
@@ -12,10 +12,10 @@ def validate_claims_data(df: pd.DataFrame) -> list[str]:
         errors.append(f"Missing required columns: {missing_cols}")
         return errors
     
-    if (df[col] for col in required_cols).isnull().any():   # Check for null values in required columns
+    if (df[["accident_year", "development_year", "paid_loss"]].isnull().any().any()):   # Check for null values in required columns
         errors.append("Null values found in required columns.")
 
-    if (df['paid_loss'] < 0).any(): # Check for negative paid losses
+    if (df["paid_loss"] < 0).any(): # Check for negative paid losses
         errors.append("Paid loss values cannot be negative.")
 
     duplicates = df.duplicated(subset=['accident_year', 'development_year']).sum()  # Check for duplicates
@@ -23,4 +23,4 @@ def validate_claims_data(df: pd.DataFrame) -> list[str]:
         errors.append(f"Found {duplicates} duplicate rows based on 'accident_year' and 'development_year'.")
     
     return errors
-"""
+
