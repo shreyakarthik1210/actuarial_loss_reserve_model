@@ -6,3 +6,5 @@ plotly
 psycopg2-binary
 sqlalchemy
 python-dotenv
+tensorflow
+scikit-learn

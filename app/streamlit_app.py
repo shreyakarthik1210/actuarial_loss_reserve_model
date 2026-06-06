@@ -12,6 +12,7 @@ sys.path.append(str(ROOT_DIR))
 from src.data.triangle_builder import loss_triangle_builder
 from src.models.chain_ladder import chain_ladder
 from src.models.monte_carlo import monte_carlo_simulation
+#from src.data.validator import validate_claims_data
 
 
 st.set_page_config(
@@ -43,6 +44,16 @@ st.subheader("Raw Claims Data")
 st.dataframe(claims_df)
 
 try:
+    """
+    errors = validate_claims_data(claims_df)
+    if errors:
+        st.error("Data validation failed: ")
+        count = 1
+        for error in errors: 
+            st.write(f"{count}. {error}")
+            count += 1
+    """
+
     triangle = loss_triangle_builder(claims_df)
 
     st.subheader("Cumulative Paid Loss Triangle")

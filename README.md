@@ -35,3 +35,7 @@ This project estimates insurance loss reserves using actuarial reserving methods
 The Chain-Ladder method estimates unpaid insurance claim reserves by using historical loss development patterns. It calculates development factors between reporting periods, projects latest cumulative losses to ultimate losses, and estimates reserves as:
 
 Reserve = Projected Ultimate Loss - Latest Cumulative Loss
+
+# Running this Project
+1. Activate the virtual environment with: source ./venv/bin/activate
+2. Run the streamlit application: streamlit run app/streamlit_app.py
