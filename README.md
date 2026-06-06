@@ -37,5 +37,15 @@ The Chain-Ladder method estimates unpaid insurance claim reserves by using histo
 Reserve = Projected Ultimate Loss - Latest Cumulative Loss
 
 # Running this Project
-1. Activate the virtual environment with: source ./venv/bin/activate
-2. Run the streamlit application: streamlit run app/streamlit_app.py
+1. Create a environment with python 3.11: 
+```bash
+python3.11 -m venv name_of_venv
+```
+2. Activate the virtual environment (macOS command): 
+```bash
+source ./venv/bin/activate
+```
+3. Run the streamlit application: 
+```bash
+streamlit run app/streamlit_app.py
+```
