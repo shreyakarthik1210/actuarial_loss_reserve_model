@@ -14,12 +14,15 @@ from src.models.chain_ladder import chain_ladder
 from src.models.monte_carlo import monte_carlo_simulation
 from src.data.validator import validate_claims_data
 from src.metrics.backtesting import backtest
+from src.metrics.backtesting import backtest_loss_triangle
 
 
 st.set_page_config(
     page_title="Actuarial Loss Reserve Forecasting",
     layout="wide"
 )
+
+
 
 st.title("Actuarial Loss Reserve Forecasting Model")
 
@@ -65,6 +68,7 @@ try:
         development_factors, cdfs, reserve_results = chain_ladder(triangle)
 
         st.subheader("Development Factors")
+        st.write("Development factors are calculated as the ratio of losses in the next development period to the current period, aggregated across all accident years. ")
         factor_df = pd.DataFrame({
             "from_development_period": triangle.columns[:-1],
             "to_development_period": triangle.columns[1:],
@@ -73,6 +77,7 @@ try:
         st.dataframe(factor_df)
 
         st.subheader("CDFs to Ultimate")
+        st.write("Cumulative Distribution Functions (CDFs) represent the proportion of ultimate losses that have been paid by each development period.")
         cdf_df = pd.DataFrame({
             "development_period": triangle.columns,
             "cdf_to_ultimate": cdfs
@@ -80,6 +85,7 @@ try:
         st.dataframe(cdf_df)
 
         st.subheader("Chain-Ladder Reserve Estimates")
+        st.write("The table below shows the projected ultimate loss and estimated reserve for each accident year based on the Chain-Ladder method.")
         st.dataframe(reserve_results)
 
         total_reserve = reserve_results["estimated_reserve"].sum()
@@ -93,10 +99,14 @@ try:
         with col2:
             st.metric("Total Estimated Reserve", f"${total_reserve:,.0f}")
 
+        st.space(size="medium")
         st.subheader("Backtesting Chain-Ladder Projections")
+        st.write("Backtesting allows us to evaluate the accuracy of our Chain-Ladder projections by comparing them to actual observed losses. " \
+            "Select a stop year to run the backtest.")
+        st.space(size="small")
         development_periods = sorted([int(col) for col in triangle.columns])
         stop_year = st.slider(
-            "Select latest development period for backtesting",
+            "Select calendar stop year for backtesting",
             min_value=int(triangle.index.min()),
             max_value=int(triangle.index.max()),
             value=int(triangle.index.max()) - 1,
@@ -104,10 +114,16 @@ try:
         )
         
         if (st.button("Run Chain-Ladder Backtests")):
+            debug_triangle = backtest_loss_triangle(triangle, stop_year)
+            debug_triangle = debug_triangle.dropna(axis=0, how="all")
+            debug_triangle = debug_triangle.dropna(axis=1, how="all")
+
+            st.subheader("Backtesting Paid Loss Triangle")
+            st.dataframe(debug_triangle)
+
             backtest_results, backtest_errors = backtest(triangle, stop_year)
-            st.write("Selected stop year:", stop_year)
-            st.write("Triangle columns:", triangle.columns.tolist())
-            st.write("Backtest result row count:", len(backtest_results))
+
+            st.subheader("Backtesting Results")
             st.dataframe(backtest_results)
             col1, col2, col3, col4 = st.columns(4)
             
@@ -123,6 +139,7 @@ try:
     # Monte carlo simulation implementation 
     with montecarlo:
         st.subheader("Monte Carlo Reserve Simulation")
+        st.write("This section simulates future development factors based on the estimated volatility of historical development factors with the Monte Carlo method. ")
 
         st.subheader("Cumulative Paid Loss Triangle")
         st.dataframe(triangle)
@@ -136,7 +153,6 @@ try:
         )
 
         run_simulation = st.button("Run Monte Carlo Simulation")
-
         if run_simulation:
             with st.spinner("Running Monte Carlo simulation..."):
                 simulation_results, simulation_summary, volatility_df = monte_carlo_simulation(

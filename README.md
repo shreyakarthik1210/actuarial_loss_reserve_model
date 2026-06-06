@@ -43,7 +43,7 @@ python3.11 -m venv name_of_venv
 ```
 2. Activate the virtual environment (macOS command): 
 ```bash
-source ./venv/bin/activate
+source ./name_of_venv/bin/activate
 ```
 3. Run the streamlit application: 
 ```bash
