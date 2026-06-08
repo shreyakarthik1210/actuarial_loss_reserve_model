@@ -1,10 +1,11 @@
+import os
 import numpy as np
 import pandas as pd
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Input, Bidirectional, LSTM, Dense, Dropout
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras.callbacks import EarlyStopping, TerminateOnNaN
 
 
 class _History:
@@ -22,9 +23,7 @@ class _LinearFallbackModel:
         design = np.hstack([ones, flat])
         return (design @ self.coef).reshape(-1, 1)
 
-# Prevent TensorFlow inter-op threading deadlock on macOS CPU
-tf.config.threading.set_intra_op_parallelism_threads(1)
-tf.config.threading.set_inter_op_parallelism_threads(1)
+
 
 """
 This function converts the loss triangle into training data format for the BiLSTM model.
@@ -84,7 +83,7 @@ def train_bilstm_model(
     y: np.ndarray,
     length: int,
     epochs: int = 25,
-    batch_size: int = 4,
+    batch_size: int = 32,
     verbose: int = 2,
 ):
     tf.keras.backend.clear_session()
@@ -92,9 +91,18 @@ def train_bilstm_model(
     X = np.asarray(X, dtype=np.float32)
     y = np.asarray(y, dtype=np.float32)
 
+    n_samples = len(X)
+
+    # Safe default for macOS CPU TensorFlow runs; can be disabled with
+    # TF_SAFE_THREADS=0 in the environment if you want to experiment.
+    safe_threads = os.getenv("TF_SAFE_THREADS", "1") != "0"
+    if safe_threads:
+        tf.config.threading.set_intra_op_parallelism_threads(1)
+        tf.config.threading.set_inter_op_parallelism_threads(1)
+
     # Tiny datasets can stall TF RNN training 
     # Fall back to a fast linear model so the app remains responsive.
-    if len(X) < 20:
+    if n_samples < 20:
         flat = X.reshape(X.shape[0], -1)
         ones = np.ones((flat.shape[0], 1), dtype=np.float32)
         design = np.hstack([ones, flat])
@@ -105,14 +113,24 @@ def train_bilstm_model(
 
     model = build_bilstm_model(length)
 
-    use_validation = len(X) >= 10
+    use_validation = n_samples >= 10
 
-    callbacks = []
+    # For larger datasets, very small batches (e.g., 4) can be prohibitively slow.
+    if n_samples >= 2000:
+        effective_batch_size = max(batch_size, 128)
+    elif n_samples >= 500:
+        effective_batch_size = max(batch_size, 32)
+    else:
+        effective_batch_size = max(batch_size, 8)
+    effective_batch_size = min(effective_batch_size, n_samples)
+
+    callbacks = [TerminateOnNaN()]
     if use_validation:
         callbacks.append(
             EarlyStopping(
                 monitor="val_loss",
-                patience=5,
+                patience=3,
+                min_delta=1e-6,
                 restore_best_weights=True
             )
         )
@@ -120,12 +138,12 @@ def train_bilstm_model(
     history = model.fit(
         X,
         y,
-        validation_split=0.2 if use_validation else 0.0,
+        validation_split=0.1 if use_validation else 0.0,
         epochs=epochs,
-        batch_size=min(batch_size, len(X)),
+        batch_size=effective_batch_size,
         callbacks=callbacks,
         verbose=verbose,
-        shuffle=False,
+        shuffle=True,
     )
 
     return model, history

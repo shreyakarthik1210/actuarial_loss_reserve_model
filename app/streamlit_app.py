@@ -216,6 +216,22 @@ try:
             key="bilstm_length"
         )
 
+        bilstm_epochs = st.slider(
+            "Training epochs",
+            min_value=5,
+            max_value=100,
+            value=25,
+            step=5,
+            key="bilstm_epochs"
+        )
+
+        bilstm_batch_size = st.select_slider(
+            "Batch size",
+            options=[8, 16, 32, 64, 128, 256],
+            value=64,
+            key="bilstm_batch_size"
+        )
+
         # Initialize session state
         if "bilstm_model" not in st.session_state:
             st.session_state.bilstm_model = None
@@ -253,9 +269,9 @@ try:
                         X=X,
                         y=y,
                         length=length,
-                        epochs=25,
-                        batch_size=4,
-                        verbose=2
+                        epochs=bilstm_epochs,
+                        batch_size=bilstm_batch_size,
+                        verbose=1
                     )
 
                 with st.spinner("Generating predictions..."):
