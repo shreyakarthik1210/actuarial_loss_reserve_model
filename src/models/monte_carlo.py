@@ -22,7 +22,7 @@ def cal_indv_development_factors (triangle: pd.DataFrame) -> np.ndarray:
 """
 This function estimates the volatility of development factors based on the loss triangle data.
 """
-def estimate_volatility (triangle: pd.DataFrame, default_sigma: float = 0.5) -> pd.DataFrame:
+def estimate_volatility (triangle: pd.DataFrame, default_sigma: float = 0.15) -> pd.DataFrame:
     development_factors = cal_development_factors(triangle)
     individual_factors = cal_indv_development_factors(triangle)
     dev_periods = list(triangle.columns)
@@ -43,8 +43,8 @@ def estimate_volatility (triangle: pd.DataFrame, default_sigma: float = 0.5) -> 
             if (np.isnan(sigma) or sigma <= 0):
                 sigma = default_sigma
         else:
-            sigma = default_sigma   # Default sigma = 0.5 when there is insufficient data to estimate volatility
-
+            sigma = default_sigma   # Default sigma = 0.15 when there is insufficient data to estimate volatility
+        sigma = float(np.clip(sigma, 0.02, 0.30))
         volatility.append(
             {
                 "from_development_period": cur_period,
@@ -58,15 +58,29 @@ def estimate_volatility (triangle: pd.DataFrame, default_sigma: float = 0.5) -> 
 """
 This function simulates future development factors based on the estimated volatility.
 """
-def simulate_factors (vol_df: pd.DataFrame, state: np.random.Generator) -> np.ndarray:
-    simulated_factors = list()
+def simulate_factors(vol_df: pd.DataFrame, state: np.random.Generator) -> np.ndarray:
+    simulated_factors = []
+
     for _, row in vol_df.iterrows():
-        mean_factor = row['chain_ladder_factor']
-        sigma = row['lognormal_sigma']
-        
-        mu = np.log(mean_factor) - 0.5 * sigma**2  # Adjust mean for lognormal distribution
-        # Simulate a development factor from the lognormal distribution
-        simulated_factor = lognorm(s=sigma, scale=np.exp(mu)).rvs(random_state=state) 
+        mean_factor = float(row["chain_ladder_factor"])
+        sigma = float(row["lognormal_sigma"])
+
+        mu = np.log(mean_factor) - 0.5 * sigma**2
+
+        simulated_factor = lognorm(
+            s=sigma,
+            scale=np.exp(mu)
+        ).rvs(random_state=state)
+
+        lower_bound = max(1.0, mean_factor * 0.75)
+        upper_bound = mean_factor * 1.25
+
+        simulated_factor = np.clip(
+            simulated_factor,
+            lower_bound,
+            upper_bound
+        )
+
         simulated_factors.append(simulated_factor)
 
     return np.array(simulated_factors)
@@ -97,7 +111,7 @@ def monte_carlo_simulation (triangle: pd.DataFrame, num_simulations: int = 10_00
             future_factors = simulated_factors[latest_position:]
             similated_ultimate = np.prod(future_factors) if len(future_factors) > 0 else 1.0
             projected_ultimate = latest_loss * similated_ultimate
-            reserve = projected_ultimate - latest_loss
+            reserve = max(projected_ultimate - latest_loss, 0)
 
             total_projected_ultimate += projected_ultimate
             total_latest_loss += latest_loss

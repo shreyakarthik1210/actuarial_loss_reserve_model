@@ -15,6 +15,7 @@ from src.models.monte_carlo import monte_carlo_simulation
 from src.data.validator import validate_claims_data
 from src.metrics.backtesting import backtest
 from src.metrics.backtesting import backtest_loss_triangle
+from src.models.bilstm_reserving import training_data, train_bilstm_model, predict_ultimates_bilstm
 
 
 st.set_page_config(
@@ -46,7 +47,7 @@ else:
 
 st.subheader("Raw Claims Data")
 st.dataframe(claims_df)
-chainladder, montecarlo = st.tabs(["Chain-Ladder Method", "Monte Carlo Simulation"])
+chainladder, montecarlo, bilstm = st.tabs(["Chain-Ladder Method", "Monte Carlo Simulation", "BiLSTM Reserving"])
 
 try:
     # Validate the uploaded claims data and display any errors
@@ -199,6 +200,91 @@ try:
             st.subheader("Raw Simulation Results")
             st.write(f"Showing all {len(simulation_results):,} simulation runs.")
             st.dataframe(simulation_results)
+        
+    with bilstm:
+        st.subheader("BiLSTM Ultimate Loss Prediction")
+        st.write(
+            "This model uses early cumulative paid loss development as a sequence "
+            "and predicts ultimate loss. It is an experimental benchmark against "
+            "the traditional Chain-Ladder model."
+        )
 
+        length = st.selectbox(
+            "Select the number of development periods to use as input features for the BiLSTM model:",
+            options=list(range(1, len(triangle.columns))),
+            index=0,
+            key="bilstm_length"
+        )
+
+        # Initialize session state
+        if "bilstm_model" not in st.session_state:
+            st.session_state.bilstm_model = None
+
+        if "bilstm_history" not in st.session_state:
+            st.session_state.bilstm_history = None
+
+        if "bilstm_predictions" not in st.session_state:
+            st.session_state.bilstm_predictions = None
+
+        if "bilstm_scale" not in st.session_state:
+            st.session_state.bilstm_scale = None
+
+        train_clicked = st.button("Train BiLSTM Model", key="train_bilstm_button")
+
+        if train_clicked:
+            try:
+                with st.spinner("Preparing BiLSTM training data..."):
+                    X, y, scale = training_data(
+                        t=triangle,
+                        length=length
+                    )
+
+                st.write(f"Training examples: {X.shape[0]}")
+                st.write(f"Input shape: {X.shape}")
+
+                if X.shape[0] < 2:
+                    st.warning(
+                        "There are very few training examples. "
+                        "The BiLSTM may not train meaningfully on this triangle."
+                    )
+
+                with st.spinner("Training BiLSTM model..."):
+                    model, history = train_bilstm_model(
+                        X=X,
+                        y=y,
+                        length=length,
+                        epochs=25,
+                        batch_size=4,
+                        verbose=2
+                    )
+
+                with st.spinner("Generating predictions..."):
+                    bilstm_predictions = predict_ultimates_bilstm(
+                        model=model,
+                        t=triangle,
+                        length=length,
+                        scale=scale
+                    )
+
+                st.session_state.bilstm_model = model
+                st.session_state.bilstm_history = history
+                st.session_state.bilstm_predictions = bilstm_predictions
+                st.session_state.bilstm_scale = scale
+
+                st.success("BiLSTM model trained successfully.")
+
+            except Exception as e:
+                st.error(f"BiLSTM Error: {e}")
+
+        if st.session_state.bilstm_predictions is not None:
+            st.subheader("BiLSTM Ultimate Loss Predictions")
+            st.dataframe(st.session_state.bilstm_predictions)
+
+        if st.session_state.bilstm_history is not None:
+            st.subheader("Training Loss")
+            loss_df = pd.DataFrame({
+                "loss": st.session_state.bilstm_history.history["loss"]
+            })
+            st.line_chart(loss_df)
 except Exception as error:
     st.error(f"Error: {error}")
