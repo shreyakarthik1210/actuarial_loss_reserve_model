@@ -1,11 +1,13 @@
 import os
+import platform
 import numpy as np
 import pandas as pd
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Input, Bidirectional, LSTM, Dense, Dropout
+from tensorflow.keras.layers import Input, Bidirectional, LSTM, Dense, Dropout, Flatten
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping, TerminateOnNaN
+
 
 
 class _History:
@@ -60,10 +62,10 @@ def training_data (t: pd.DataFrame, length: int) -> tuple[np.ndarray, np.ndarray
     return X_scaled, y_scaled, scale
 
 
-def build_bilstm_model(length: int) -> Sequential:
+def build_bilstm_model(length: int, *, run_eagerly: bool = False, unroll_lstm: bool = False) -> Sequential:
     model = Sequential([
         Input(shape=(length, 1)),
-        Bidirectional(LSTM(8, return_sequences=False)),
+        Bidirectional(LSTM(8, return_sequences=False, unroll=unroll_lstm)),
         Dropout(0.1),
         Dense(8, activation="relu"),
         Dense(1)
@@ -73,6 +75,27 @@ def build_bilstm_model(length: int) -> Sequential:
         optimizer=Adam(learning_rate=0.001),
         loss="mse",
         metrics=["mae"],
+        run_eagerly=run_eagerly,
+    )
+
+    return model
+
+
+def build_dense_sequence_model(length: int, *, run_eagerly: bool = False) -> Sequential:
+    model = Sequential([
+        Input(shape=(length, 1)),
+        Flatten(),
+        Dense(32, activation="relu"),
+        Dropout(0.1),
+        Dense(8, activation="relu"),
+        Dense(1),
+    ])
+
+    model.compile(
+        optimizer=Adam(learning_rate=0.001),
+        loss="mse",
+        metrics=["mae"],
+        run_eagerly=run_eagerly,
     )
 
     return model
@@ -93,6 +116,18 @@ def train_bilstm_model(
 
     n_samples = len(X)
 
+    # Reliable fallback for environments where TensorFlow fit can deadlock
+    # (observed on some macOS setups). Set BILSTM_USE_NUMPY_FALLBACK=0 to force TF.
+    use_numpy_fallback = platform.system() == "Darwin" and os.getenv("BILSTM_USE_NUMPY_FALLBACK", "1") == "1"
+    if use_numpy_fallback:
+        flat = X.reshape(X.shape[0], -1)
+        ones = np.ones((flat.shape[0], 1), dtype=np.float32)
+        design = np.hstack([ones, flat])
+        coef, _, _, _ = np.linalg.lstsq(design, y, rcond=None)
+        y_hat = design @ coef
+        loss = float(np.mean((y_hat - y) ** 2))
+        return _LinearFallbackModel(coef.astype(np.float32)), _History(loss)
+
     # Safe default for macOS CPU TensorFlow runs; can be disabled with
     # TF_SAFE_THREADS=0 in the environment if you want to experiment.
     safe_threads = os.getenv("TF_SAFE_THREADS", "1") != "0"
@@ -111,7 +146,23 @@ def train_bilstm_model(
         loss = float(np.mean((y_hat - y) ** 2))
         return _LinearFallbackModel(coef.astype(np.float32)), _History(loss)
 
-    model = build_bilstm_model(length)
+    # Eager mode avoids occasional graph-mode hangs in some macOS TensorFlow builds.
+    run_eagerly = os.getenv("TF_EAGER_FIT", "1") != "0"
+    unroll_lstm = length <= 12
+
+    # Some macOS TensorFlow builds can deadlock in recurrent kernels.
+    # Use a safe dense-sequence model by default on macOS unless explicitly overridden.
+    force_recurrent = os.getenv("BILSTM_FORCE_RECURRENT", "0") == "1"
+    use_dense_safe_model = platform.system() == "Darwin" and not force_recurrent
+
+    if use_dense_safe_model:
+        model = build_dense_sequence_model(length, run_eagerly=run_eagerly)
+    else:
+        model = build_bilstm_model(
+            length,
+            run_eagerly=run_eagerly,
+            unroll_lstm=unroll_lstm,
+        )
 
     use_validation = n_samples >= 10
 
@@ -181,3 +232,16 @@ def predict_ultimates_bilstm(model: Sequential, t: pd.DataFrame, length: int, sc
         })
 
     return pd.DataFrame(predictions)
+
+
+if __name__ == "__main__":
+    X, y, scale = training_data(pd.read_csv("data/sample_lstm.csv"), length=3)
+    print(X.shape, y.shape, scale)
+    model, history = train_bilstm_model(
+        X,
+        y,
+        length=X.shape[1],
+        epochs=25,
+        batch_size=32,
+        verbose=1,
+    )
