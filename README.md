@@ -5,6 +5,16 @@ An interactive Streamlit dashboard for estimating insurance claim reserves using
 The goal of this project is to combine actuarial reserving concepts with modern data science and machine learning techniques in an interactive Streamlit dashboard.
 
 &ensp;
+## Table of Contents
+1. [Features](#features)
+2. [Actuarial Concept](#actuarial-concept)
+3. [Machine Learning Component](#machine-learning-component)
+4. [Backtesting](#backtesting)
+5. [Tech Stack](#tech-stack)
+6. [Running this Project](#running-this-project)
+7. [Planned Features](#planned-features)
+
+&ensp;
 ## Features
 
 - Upload claims data and build cumulative paid loss development triangles
@@ -63,12 +73,6 @@ The following performance metrics are calculated:
 - PostgreSQL
 - SQLAlchemy
 
-&ensp;
-## Planned Features
-
-- PostgreSQL storage for claims data and model run results
-- Improved validation for uploaded claims data
-- Exportable reserve reports
 
 &ensp;
 ## Running This Project
@@ -104,3 +108,10 @@ pip install -r requirements.txt
 ```bash
 streamlit run app/streamlit_app.py
 ```
+
+&ensp;
+## Planned Features
+
+- PostgreSQL storage for claims data and model run results
+- Improved validation for uploaded claims data
+- Exportable reserve reports
