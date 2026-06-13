@@ -1,6 +1,6 @@
 # Actuarial Loss Reserve Forecasting Model
 
-This project estimates insurance loss reserves using actuarial reserving methods and simulation.
+This project estimates insurance loss reserves using actuarial reserving methods and simulation. Also include bilstm. 
 
 ## Features
 
