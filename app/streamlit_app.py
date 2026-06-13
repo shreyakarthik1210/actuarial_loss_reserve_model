@@ -50,15 +50,20 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-st.write(
+st.markdown(
     """
-    This dashboard estimates insurance loss reserves using the Chain-Ladder method.
-    Future versions will include Monte Carlo simulation, PostgreSQL storage, and LSTM benchmarking.
+    This dashboard estimates insurance loss reserves using two approaches:
+
+    - **Chain-Ladder** for deterministic reserve projections, with **Monte Carlo simulation** to model uncertainty.
+    - **BiLSTM** as an experimental benchmark that uses early development patterns to predict ultimate losses.
+
+    Both methods can be backtested against observed losses by selecting a calendar stop year.
+    The **Compare Methods** tab shows the Chain-Ladder and BiLSTM backtesting results side by side.
     """
 )
-
+st.space(size="small")
 uploaded_file = st.file_uploader(
-    "Upload claims data CSV",
+    "Upload claims data CSV (if no file is uploaded, a sample dataset will be used)",
     type=["csv"]
 )
 
@@ -69,7 +74,8 @@ else:
     claims_df = pd.read_csv(ROOT_DIR / "data" / "sample_claims.csv")
 
 st.subheader("Raw Claims Data")
-st.dataframe(claims_df)
+with st.expander("Click to collapse data", expanded=True):
+    st.dataframe(claims_df)
 chainladder, montecarlo, bilstm, compare_methods = st.tabs(["Chain-Ladder Method", "Monte Carlo Simulation", "BiLSTM Reserving", "Compare Methods"])
 
 try:
@@ -234,7 +240,9 @@ try:
             "and predicts ultimate loss. It is an experimental benchmark against "
             "the traditional Chain-Ladder model."
         )
-
+        url = "https://forum.casact.org/article/37953-ultimate-loss-reserve-forecasting-using-bidirectional-lstms"
+        st.caption("The BiLSTM model is experimental and based on a simplified version of this [CAS paper.](%s)" % url)
+        st.space(size="small")
         length = st.selectbox(
             "Select the number of development periods to use as input features for the BiLSTM model:",
             options=list(range(1, len(triangle.columns))),
