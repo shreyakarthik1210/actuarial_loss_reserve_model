@@ -234,6 +234,62 @@ def predict_ultimates_bilstm(model: Sequential, t: pd.DataFrame, length: int, sc
     return pd.DataFrame(predictions)
 
 
+def bilstm_predictions_to_triangle(predictions: pd.DataFrame, original_triangle: pd.DataFrame, ultimate_col: str | None = None) -> pd.DataFrame:
+    """Convert BiLSTM per-accident-year predictions into a loss triangle compatible shape.
+
+    The function returns a copy of `original_triangle` where, for each accident year present
+    in `predictions`, the value in `ultimate_col` (defaults to the last development column)
+    is set to the BiLSTM predicted ultimate if that cell is currently missing. This
+    lets downstream triangle-based code (e.g., `chain_ladder`) operate on a triangle
+    that contains the model's ultimate estimates.
+
+    Args:
+        predictions: DataFrame from `predict_ultimates_bilstm` containing
+            an `accident_year` column and `bilstm_predicted_ultimate_loss`.
+        original_triangle: The loss triangle DataFrame (index accident years,
+            columns development periods) to base the output on.
+        ultimate_col: Optional column name in `original_triangle` to place the
+            predicted ultimate values. If None, the last column is used.
+
+    Returns:
+        A copy of `original_triangle` with predicted ultimate values inserted.
+    """
+    tri = original_triangle.copy()
+    if tri.empty:
+        return tri
+
+    if ultimate_col is None:
+        ultimate_col = tri.columns[-1]
+
+    for _, row in predictions.iterrows():
+        ay = row.get("accident_year")
+        pred_ultimate = row.get("bilstm_predicted_ultimate_loss")
+        if ay not in tri.index:
+            # skip accident years not present in the triangle
+            continue
+        # Only populate if the target cell is missing
+        try:
+            if pd.isna(tri.loc[ay, ultimate_col]):
+                tri.loc[ay, ultimate_col] = float(pred_ultimate)
+        except KeyError:
+            # if ultimate_col not present for some reason, skip
+            continue
+
+    return tri
+
+
+def bilstm_predictions_to_pred_df(predictions: pd.DataFrame) -> pd.DataFrame:
+    """Return a two-column DataFrame (`accident_year`, `predicted_ultimate_loss`) from
+    the BiLSTM predictions DataFrame so it can be consumed by `cal_errors` or other
+    utilities that expect this shape.
+    """
+    if predictions.empty:
+        return pd.DataFrame(columns=["accident_year", "predicted_ultimate_loss"])
+
+    out = predictions.rename(columns={"bilstm_predicted_ultimate_loss": "predicted_ultimate_loss"})
+    return out[["accident_year", "predicted_ultimate_loss"]].copy()
+
+
 if __name__ == "__main__":
     X, y, scale = training_data(pd.read_csv("data/sample_lstm.csv"), length=3)
     print(X.shape, y.shape, scale)
