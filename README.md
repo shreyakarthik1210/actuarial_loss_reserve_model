@@ -4,7 +4,7 @@ An interactive Streamlit dashboard for estimating insurance claim reserves using
 
 The goal of this project is to combine actuarial reserving concepts with modern data science and machine learning techniques in an interactive Streamlit dashboard.
 
-
+&ensp;
 ## Features
 
 - Upload claims data and build cumulative paid loss development triangles
@@ -15,7 +15,7 @@ The goal of this project is to combine actuarial reserving concepts with modern 
 - Backtest Chain-Ladder and BiLSTM projections against known ultimates using historical calendar-year cutoffs
 - Compare model performance via MAE, RMSE, MAPE, and Bias
 
-
+&ensp;
 ## Actuarial Concept
 
 The Chain-Ladder method estimates unpaid insurance claim reserves by using historical loss development patterns. It calculates development factors between reporting periods, applies those factors to the latest cumulative losses, and projects each accident year to an estimated ultimate loss.
@@ -28,6 +28,7 @@ Reserve = Projected Ultimate Loss - Latest Cumulative Loss
 
 The total reserve is the sum of estimated reserves across all accident years.
 
+&ensp;
 ## Machine Learning Component
 
 The project includes an experimental Bidirectional Long Short-Term Memory, or BiLSTM, model for ultimate loss prediction. The model uses early cumulative paid loss development as a sequential input and predicts the ultimate loss for each accident year.
@@ -37,7 +38,7 @@ This model is intended as a benchmark against the traditional Chain-Ladder metho
 The BiLSTM approach was inspired by the following CAS article:
 [Ultimate Loss Reserve Forecasting Using Bidirectional LSTMs](https://forum.casact.org/article/37953-ultimate-loss-reserve-forecasting-using-bidirectional-lstms)
 
-
+&ensp;
 ## Backtesting
 
 The application includes backtesting functionality for both the Chain-Ladder method and the BiLSTM model. A user can select a calendar stop year, hide later development data, and evaluate how well each method would have predicted known ultimate losses.
@@ -49,7 +50,7 @@ The following performance metrics are calculated:
 - MAPE: Mean Absolute Percentage Error
 - Bias: Average signed prediction error
 
-
+&ensp;
 ## Tech Stack
 
 - Python
@@ -62,14 +63,14 @@ The following performance metrics are calculated:
 - PostgreSQL
 - SQLAlchemy
 
-
+&ensp;
 ## Planned Features
 
 - PostgreSQL storage for claims data and model run results
 - Improved validation for uploaded claims data
 - Exportable reserve reports
 
-
+&ensp;
 ## Running This Project
 
 ### 1. Create a Python 3.11 virtual environment
