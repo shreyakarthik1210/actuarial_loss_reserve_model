@@ -1,8 +1,10 @@
-# Actuarial Loss Reserve Forecasting Model
+# [Actuarial Loss Reserve Forecasting Model](https://actuariallossreservemodel.streamlit.app/)
 
 An interactive Streamlit dashboard for estimating insurance claim reserves using the Chain-Ladder method, Monte Carlo simulation, and a BiLSTM machine learning benchmark.
 
 The goal of this project is to combine actuarial reserving concepts with modern data science and machine learning techniques in an interactive Streamlit dashboard.
+
+<video src="https://youtu.be/1eY0pZk2zQU" width="320" height="240" controls></video>
 
 &ensp;
 ## Table of Contents
@@ -12,7 +14,7 @@ The goal of this project is to combine actuarial reserving concepts with modern 
 4. [Backtesting](#backtesting)
 5. [Tech Stack](#tech-stack)
 6. [Running this Project](#running-this-project)
-7. [Demo](#demo)
+
 
 &ensp;
 ## Features
@@ -76,9 +78,7 @@ The following performance metrics are calculated:
 
 &ensp;
 ## Running This Project
-### [Link to Deployed application on Streamlit Cloud](https://actuariallossreservemodel.streamlit.app/)
 
-### Running it on your local machine:
 #### 1. Clone this repository
 
 #### 2. Create a Python 3.11 virtual environment
@@ -112,5 +112,3 @@ pip install -r requirements.txt
 ```bash
 streamlit run app/streamlit_app.py
 ```
-
-## Demo

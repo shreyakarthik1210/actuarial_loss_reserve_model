@@ -155,15 +155,21 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     # backtesting code expect month-based development periods, so normalize
     # calendar-year development values to month ages here.
     if cleaned_df["development_year"].ge(1000).all():
+        cleaned_df["calendar_year"] = cleaned_df["development_year"]
+
         cleaned_df["development_year"] = (
-            (cleaned_df["development_year"] - cleaned_df["accident_year"] + 1) * 12
+            (cleaned_df["calendar_year"] - cleaned_df["accident_year"] + 1) * 12
+        )
+    else:
+        cleaned_df["calendar_year"] = (
+            cleaned_df["accident_year"] + (cleaned_df["development_year"] // 12) - 1
         )
 
     cleaned_df = cleaned_df[cleaned_df["paid_loss"] >= 0]
 
     cleaned_df = (
         cleaned_df
-        .groupby(["accident_year", "development_year"], as_index=False)
+        .groupby(["accident_year", "development_year", "calendar_year"], as_index=False)
         .agg({"paid_loss": "sum"})
         .sort_values(["accident_year", "development_year"])
         .reset_index(drop=True)

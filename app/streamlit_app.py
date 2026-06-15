@@ -90,6 +90,12 @@ try:
 
     triangle = loss_triangle_builder(claims_df) # Convert raw claims data to loss triangle format
 
+    if triangle.isna().sum().sum() == 0:
+        st.warning(
+            "The uploaded data forms a complete rectangle with no missing future development periods. "
+            "Chain-Ladder reserves may be $0 because every accident year appears fully developed."
+        )
+
     # Chain-ladder method implementation and backtesting
     with chainladder:
         st.subheader("Chain-Ladder Method")
@@ -110,7 +116,7 @@ try:
         st.dataframe(factor_df)
 
         st.subheader("CDFs to Ultimate")
-        st.write("Cumulative Distribution Functions (CDFs) represent the proportion of ultimate losses that have been paid by each development period.")
+        st.write("Cumulative Development Factors, or CDFs, estimate how much losses are expected to grow from a given development period to ultimate. A CDF greater than 1.0 indicates that additional loss development is expected.")
         cdf_df = pd.DataFrame({
             "development_period": triangle.columns,
             "cdf_to_ultimate": cdfs
