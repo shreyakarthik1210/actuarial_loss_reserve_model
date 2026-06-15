@@ -76,18 +76,18 @@ The following performance metrics are calculated:
 
 &ensp;
 ## Running This Project
-### Deployed application on Streamlit Cloud: 
+### [Link to Deployed application on Streamlit Cloud](https://actuariallossreservemodel.streamlit.app/)
 
 ### Running it on your local machine:
-### 1. Clone this repository
+#### 1. Clone this repository
 
-### 2. Create a Python 3.11 virtual environment
+#### 2. Create a Python 3.11 virtual environment
 
 ```bash
 python3.11 -m venv name_of_venv
 ```
 
-### 3. Activate the virtual environment
+#### 3. Activate the virtual environment
 
 For macOS or Linux:
 
@@ -101,13 +101,13 @@ For Windows:
 name_of_venv\Scripts\activate
 ```
 
-### 4. Install dependencies
+#### 4. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 5. Run the Streamlit application
+#### 5. Run the Streamlit application
 
 ```bash
 streamlit run app/streamlit_app.py
