@@ -6,6 +6,8 @@ The goal of this project is to combine actuarial reserving concepts with modern 
 
 <video src="https://youtu.be/1eY0pZk2zQU" width="320" height="240" controls></video>
 
+<iframe width="560" height="315" src="https://www.youtube.com/embed/1eY0pZk2zQU?si=khpb5MqGxTZxTZOr" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
 &ensp;
 ## Table of Contents
 1. [Features](#features)
@@ -14,7 +16,6 @@ The goal of this project is to combine actuarial reserving concepts with modern 
 4. [Backtesting](#backtesting)
 5. [Tech Stack](#tech-stack)
 6. [Running this Project](#running-this-project)
-
 
 &ensp;
 ## Features
@@ -74,7 +75,6 @@ The following performance metrics are calculated:
 - TensorFlow / Keras
 - PostgreSQL
 - SQLAlchemy
-
 
 &ensp;
 ## Running This Project
