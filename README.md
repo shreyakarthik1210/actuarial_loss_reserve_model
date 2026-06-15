@@ -4,10 +4,7 @@ An interactive Streamlit dashboard for estimating insurance claim reserves using
 
 The goal of this project is to combine actuarial reserving concepts with modern data science and machine learning techniques in an interactive Streamlit dashboard.
 
-[<video src="https://youtu.be/1eY0pZk2zQU" width="320" height="240" controls></video>]
-
-<iframe width="560" height="315" src="https://www.youtube.com/embed/1eY0pZk2zQU?si=khpb5MqGxTZxTZOr" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-
+[Click here for the Demo](https://www.youtube.com/watch?v=1eY0pZk2zQU)
 
 &ensp;
 ## Table of Contents
