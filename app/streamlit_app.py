@@ -16,10 +16,9 @@ from src.data.validator import validate_claims_data
 from src.metrics.backtesting import backtest
 from src.metrics.backtesting import backtest_loss_triangle, cal_errors
 from src.models.bilstm_reserving import training_data, train_bilstm_model, predict_ultimates_bilstm
-from src.models.bilstm_reserving import (
-    bilstm_predictions_to_triangle,
-    bilstm_predictions_to_pred_df,
-)
+from src.models.bilstm_reserving import bilstm_predictions_to_triangle, bilstm_predictions_to_pred_df
+from data.data_cleaner import clean_data
+
 
 
 st.set_page_config(
@@ -73,7 +72,8 @@ else:
     st.info("Using sample claims data.")
     claims_df = pd.read_csv(ROOT_DIR / "data" / "sample_claims.csv")
 
-st.subheader("Raw Claims Data")
+claims_df = clean_data(claims_df) 
+st.subheader("Cleaned Raw Claims Data")
 with st.expander("Click to collapse data", expanded=True):
     st.dataframe(claims_df)
 chainladder, montecarlo, bilstm, compare_methods = st.tabs(["Chain-Ladder Method", "Monte Carlo Simulation", "BiLSTM Reserving", "Compare Methods"])

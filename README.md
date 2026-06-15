@@ -43,7 +43,7 @@ The total reserve is the sum of estimated reserves across all accident years.
 
 The project includes an experimental Bidirectional Long Short-Term Memory, or BiLSTM, model for ultimate loss prediction. The model uses early cumulative paid loss development as a sequential input and predicts the ultimate loss for each accident year.
 
-This model is intended as a benchmark against the traditional Chain-Ladder method rather than a replacement for actuarial judgment. Since loss triangles are often small, the BiLSTM model should be interpreted carefully and evaluated through backtesting.
+This model is intended as a benchmark against the traditional Chain-Ladder method. Since loss triangles are often small, the BiLSTM model should be interpreted carefully and evaluated through backtesting.
 
 The BiLSTM approach was inspired by the following CAS article:
 [Ultimate Loss Reserve Forecasting Using Bidirectional LSTMs](https://forum.casact.org/article/37953-ultimate-loss-reserve-forecasting-using-bidirectional-lstms)
@@ -109,9 +109,4 @@ pip install -r requirements.txt
 streamlit run app/streamlit_app.py
 ```
 
-&ensp;
-## Planned Features
-
-- PostgreSQL storage for claims data and model run results
-- Improved validation for uploaded claims data
-- Exportable reserve reports
+## Demo
