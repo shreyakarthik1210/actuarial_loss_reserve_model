@@ -1,6 +1,16 @@
 actuarial_venv/
 .venv/
 venv/
+
+# Python bytecode and caches
 **/__pycache__/
 *.pyc
+*.pyo
+*.pyd
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
 .DS_Store

@@ -71,8 +71,7 @@ The following performance metrics are calculated:
 - Streamlit
 - Plotly
 - TensorFlow / Keras
-- PostgreSQL
-- SQLAlchemy
+
 
 &ensp;
 ## Running This Project
