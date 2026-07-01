@@ -3,7 +3,7 @@
 An interactive Streamlit dashboard for estimating insurance claim reserves using the Chain-Ladder method, Monte Carlo simulation, and a BiLSTM machine learning benchmark.
 
 The goal of this project is to combine actuarial reserving concepts with modern data science and machine learning techniques in an interactive Streamlit dashboard.
-
+&nbsp;
 <img width="1899" height="930" alt="Screenshot 2026-07-01 at 12 06 29 AM" src="https://github.com/user-attachments/assets/d6fa4797-3c78-4b91-8acf-1c86d91afb09" />
 
 [Click here for the Demo](https://www.youtube.com/watch?v=1eY0pZk2zQU)\
